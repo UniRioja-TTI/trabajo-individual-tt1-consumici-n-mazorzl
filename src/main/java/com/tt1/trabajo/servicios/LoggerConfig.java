@@ -1,4 +1,4 @@
-package servicios;
+package com.tt1.trabajo.servicios;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

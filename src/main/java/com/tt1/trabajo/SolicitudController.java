@@ -1,5 +1,6 @@
 package com.tt1.trabajo;
 
+import modelo.DatosSimulation;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,5 +69,22 @@ public class SolicitudController {
         	}
         }
         return "formResult";
+    }
+    @GetMapping("/grid")
+    public String mostrarGrid(@RequestParam("tok") int token, Model model) {
+
+        // 1. Usamos el servicio para descargar los datos de la API usando el token
+        DatosSimulation datos = servicioSolicitudes.descargarDatos(token);
+
+        if (datos != null && datos.getRawData() != null) {
+            // 2. Pasamos el texto en crudo a la vista
+            // Ejemplo de rawData: "0,7,5, red\n0,7,4, yellow"
+            model.addAttribute("datosGrid", datos.getRawData());
+        } else {
+            model.addAttribute("error", "No se pudieron obtener los datos de la simulación.");
+        }
+
+        // 3. Devolvemos el nombre de la página HTML que vamos a crear ahora
+        return "grid";
     }
 }
