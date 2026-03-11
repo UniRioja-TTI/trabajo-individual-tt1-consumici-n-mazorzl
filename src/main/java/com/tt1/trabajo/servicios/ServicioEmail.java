@@ -1,8 +1,8 @@
 package com.tt1.trabajo.servicios;
 import org.springframework.stereotype.Service;
 
-import interfaces.InterfazEnviarEmails;
-import modelo.Destinatario;
+import com.tt1.trabajo.interfaces.InterfazEnviarEmails;
+import com.tt1.trabajo.modelo.Destinatario;
 import org.slf4j.Logger;
 
 @Service

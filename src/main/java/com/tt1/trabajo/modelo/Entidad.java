@@ -1,4 +1,4 @@
-package modelo;
+package com.tt1.trabajo.modelo;
 
 public class Entidad {
 	private int id;

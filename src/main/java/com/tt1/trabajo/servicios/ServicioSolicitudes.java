@@ -1,13 +1,14 @@
 package com.tt1.trabajo.servicios;
+import com.tt1.trabajo.modelo.ResultsResponse;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import interfaces.InterfazContactoSim;
-import modelo.DatosSolicitud;
-import modelo.DatosSimulation;
-import modelo.Entidad;
+import com.tt1.trabajo.interfaces.InterfazContactoSim;
+import com.tt1.trabajo.modelo.DatosSolicitud;
+import com.tt1.trabajo.modelo.DatosSimulation;
+import com.tt1.trabajo.modelo.Entidad;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -16,9 +17,22 @@ public class ServicioSolicitudes implements InterfazContactoSim {
 
     @Override
     public int solicitarSimulation(DatosSolicitud sol) {
-        this.solicitudProvisional = sol;
-        Random random = new Random();
-        return random.nextInt(10000);
+        RestTemplate restTemplate = new RestTemplate();
+        String urlApi = "http://localhost:8080/Solicitud/Solicitar?nombreUsuario=Marcos";
+
+        try {
+            ResultsResponse respuestaJson = restTemplate.postForObject(urlApi, sol, ResultsResponse.class);
+
+            if (respuestaJson != null) {
+                System.out.println("¡ÉXITO! La máquina ha creado la simulación con el TOKEN REAL: " + respuestaJson.getTokenSolicitud());
+                return respuestaJson.getTokenSolicitud();
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error al crear la simulación real: " + e.getMessage());
+        }
+
+        return -1;
     }
 
     @Override
@@ -31,22 +45,27 @@ public class ServicioSolicitudes implements InterfazContactoSim {
         return lista;
     }
 
-    @Override
-    public DatosSimulation descargarDatos(int ticket) {
-        // 1. Herramienta para hacer peticiones web
+    public static DatosSimulation descargarDatos(int ticket) {
         RestTemplate restTemplate = new RestTemplate();
-
-        // 2. ¡OJO AQUÍ! Cambia "DIRECCION_DE_LA_MAQUINA" por la URL real que os haya dado el profesor
-        // El PDF dice que uses un usuario constante inventado por ti (ej: "Marcos")
-        String urlApi = "http://DIRECCION_DE_LA_MAQUINA/api/resultados?ticket=" + ticket + "&usuario=Marcos";
+        String urlApi = "http://localhost:8080/Resultados?nombreUsuario=Marcos&tok=" + ticket;
 
         try {
-            // 3. Llamamos a la máquina y guardamos el texto raro que nos devuelve (0,7,5, red...)
-            String respuesta = restTemplate.getForObject(urlApi, String.class);
-
-            // 4. Lo metemos en nuestro objeto de datos
+            ResultsResponse respuestaJson = restTemplate.postForObject(urlApi, null, ResultsResponse.class);
             DatosSimulation datos = new DatosSimulation();
-            datos.setRawData(respuesta); // Asegúrate de que tu clase DatosSimulation tenga este setter
+
+            if (respuestaJson != null) {
+                System.out.println("========== RESPUESTA DE LA MÁQUINA ==========");
+                System.out.println("1. ¿Ha terminado? (done): " + respuestaJson.isDone());
+                System.out.println("2. Posible error: " + respuestaJson.getErrorMessage());
+                System.out.println("3. Texto de colores (data): \n" + respuestaJson.getData());
+                System.out.println("=============================================");
+
+                if (respuestaJson.isDone()) {
+                    datos.setRawData(respuestaJson.getData());
+                } else {
+                    datos.setRawData("");
+                }
+            }
             return datos;
 
         } catch (Exception e) {
